@@ -44,3 +44,7 @@ plot(t_new,x);
 plot(t_new,y_high);
 legend('input','output');
 hold off
+
+% calculate output for bandpass filter
+y_band = y_low+y_high;
+
