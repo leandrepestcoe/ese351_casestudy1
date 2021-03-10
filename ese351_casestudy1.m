@@ -8,9 +8,12 @@ sound(xv,fs)
 
 %% compute and plot fft
 
-f = [0:length(xv)-1]*fs/length(xv);
+f = [0:length(xv)/2]*fs/length(xv);
 XV = fft(xv);
-figure, plot(f,abs(XV));
+P2 = abs(XV/length(xv));
+P1 = P2(1:length(xv)/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+figure, plot(f,P1);
 xlabel('f, Hz')
 ylabel('|X(f)|')
 
@@ -18,8 +21,8 @@ ylabel('|X(f)|')
 
 f = 100;
 w = 2*pi*f;
-delta_t = 1/44100;
-t_new = (0:delta_t:0.2);
+delta_t = 0.1;
+t_new = (0:delta_t:(length(xv)-1)*delta_t)';
 %x = exp(j*w*t_new);
 x = xv; %input is audio data...
 R_low = 1000;
