@@ -108,7 +108,7 @@ band2 = bandpass(x, [550 900], fs);
 band3 = bandpass(x, [900 1250], fs);
 band4 = bandpass(x, [1250 1600], fs);
  band5 = bandstop(x, [1600 2000], fs);
-final_band = .1*band0+0.9*band1+band2+band3+band4+.1*band5;
+final_band = .1*band0+band1+band2+band3+5*band4+.1*band5;
 sound(final_band,fs);
 figure
 pspectrum(final_band,fs);
