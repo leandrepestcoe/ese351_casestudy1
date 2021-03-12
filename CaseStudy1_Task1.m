@@ -101,16 +101,49 @@ final_filter = (gain0*y_band0)+(gain1*y_band1)+(gain2*y_band2)+(gain3*y_band3)+(
 %freqz(final_filter);
 
 
-%%
- band0 = bandstop(x,[1 200], fs);
+%% Multi-band equalizer using bandpass func
+
+band0 = bandstop(x,[1 200], fs);
 band1 = bandpass(x,[200 550], fs);
 band2 = bandpass(x, [550 900], fs);
 band3 = bandpass(x, [900 1250], fs);
 band4 = bandpass(x, [1250 1600], fs);
- band5 = bandstop(x, [1600 2000], fs);
+band5 = bandstop(x, [1600 2000], fs);
 final_band = .1*band0+0.9*band1+band2+band3+band4+.1*band5;
 sound(final_band,fs);
-figure
+figure();
 pspectrum(final_band,fs);
 
+%% frequency spectrum
 
+y_out = fft(final_band);
+L = length(final_band);
+
+P2_out = abs(y_out/L);
+P1_out = P2_out(1:L/2+1);
+P1_out(2:end-1) = 2*P1_out(2:end-1);
+
+f = fs*(0:(L/2))/L;
+
+figure();
+plot(f,P1_out) 
+title('Single-Sided Amplitude Spectrum of x_out(t)')
+xlabel('f (Hz)')
+ylabel('|y_out(f)|')
+
+%% experimenting with filter designer
+
+% load the filter from the .mat file into the workspace
+bandpass_filter = load('bandpass_fir.mat');
+num = bandpass_filter.Num;
+
+% apply the filter to the audio signal
+x_out = filter(num,1,x);
+
+% plot filtered signal
+figure();
+plot(t,x_out);
+%xlim([0 0.1]);
+title('filtered audio signal');
+xlabel('t');
+ylabel('x(t)');
