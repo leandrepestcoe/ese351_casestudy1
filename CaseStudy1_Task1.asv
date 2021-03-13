@@ -138,10 +138,10 @@ ylabel('|y_out(f)|')
 
 % apply the filter to the audio signal
 %x_out = filter(good_filter.mat,x); % SOUNDS GREAT
-x_out1 = filter(bandstop60,x);
-x_out2 = filter(bandstop1900,x_out1);
-%x_out=x_out1+x_out2;
-sound(x_out2,xvfs);
+x_out1= filter(bandstop60,x);
+x_out2=filter(bandstop1900,x);
+x_out=x_out1+x_out2;
+sound(x_out,xvfs);
 
 % plot filtered signal
 figure();
