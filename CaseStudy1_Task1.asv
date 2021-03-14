@@ -9,7 +9,7 @@ sound(xv,fs)
 %% compute and plot fft
 
 f = [0:length(xv)/2]*fs/length(xv);
-XV = fft(final_band);
+XV = fft(x);
 P2 = abs(XV/length(xv));
 P1 = P2(1:length(xv)/2+1);
 P1(2:end-1) = 2*P1(2:end-1);
@@ -112,13 +112,13 @@ sound(final_filter,fs);
 
 %% Multi-band equalizer using bandpass func
 
-band0 = bandstop(x, [1 200], fs);
+band0 = bandpass(x, [1 200], fs);
 band1 = bandpass(x, [200 550], fs);
 band2 = bandpass(x, [550 900], fs);
 band3 = bandpass(x, [900 1250], fs);
 band4 = bandpass(x, [1250 1600], fs);
-band5 = bandstop(x, [1600 2000], fs);
-final_band = band0+0.5*band1+band2+band3+band4+.1*band5;
+band5 = bandpass(x, [1600 2000], fs);
+final_band = 0.1*band0+0.1*band1+band2+band3+band4+0.1*band5;
 sound(final_band,fs);
 figure();
 pspectrum(final_band,fs);
@@ -163,3 +163,34 @@ sound(finalfilter,xvfs);
 % xlabel('t');
 % ylabel('x(t)');
 
+%% 
+% bode plot for magnitude vs. frequency
+freq_range = logspace(1,log10(20000),10);
+gains = zeros(size(freq_range));
+T = 0.002;
+dt = 20*T;
+fs = 44100;
+t = 0:(1/fs):dt;
+
+for k = 1:length(freq_range);
+    freq = freq_range(k);
+    comp_exp = exp(j*freq*2*pi*t);
+    band0 = bandpass(comp_exp, [1 200], fs);
+   %  band1 = bandpass(comp_exp, [200 550], fs);
+%     band2 = bandpass(comp_exp, [550 900], fs);
+%     band3 = bandpass(comp_exp, [900 1250], fs);
+%     band4 = bandpass(comp_exp, [1250 1600], fs);
+%     band5 = bandpass(comp_exp, [1600 2000], fs);
+    %final_band = 0.1*band0+0.1*band1+band2+band3+band4+0.01*band5;\
+    final_band = band0;
+    filter_gain = final_band(end)/comp_exp(end);
+    gains(k) = filter_gain;
+end
+dB = 20*log10(abs(gains));
+figure()
+subplot(2,1,1);
+plot(freq_range,dB);
+title('Magnitude of H(w) for final filter');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+grid on;
