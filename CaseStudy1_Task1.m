@@ -65,6 +65,23 @@ title('Phase of Gain');
 xlabel('Frequency'); ylabel('Radians');
 xlim([0 10000]);
 
+%% Compute/Plot Impulse Response
+
+T = 0.002;
+f = 44100;
+delta_t = 1/f;
+t = (0:delta_t:T);
+impulse = zeros(1,length(t));
+impulse(1)=1; %define impulse func
+
+%compute impulse response
+filter_im = final_bandfilter(impulse,t);  
+
+figure();
+plot(t, filter_im); %plot impulse response
+title('Impulse Response of Final Filter');
+xlabel('Time(s)');
+
 %% Multi-band equalizer using bandpass func
 
 band0 = bandpass(x, [50 200], fs);
