@@ -2,9 +2,10 @@
 % Leandre Pestcoe and Julianne Wegmann
 
 %% load noisy violin data, then play recording
+
 [xv,xvfs] = audioread('violindirty.wav');
 fs = xvfs; 
-sound(xv,fs)
+%sound(xv,fs)
 
 %% compute and plot fft
 
@@ -109,6 +110,42 @@ sound(final_filter,fs);
 %plot(freq_response);
 %freqz(final_filter);
 
+%% freq response
+T = 0.002;
+fs = 44100;
+delta_t = 1/fs;
+f_range = logspace(1,log10(20000),600);
+t = (0:delta_t:10*T);
+H = zeros(size(f_range));
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    band0 = bandpass(x, [50 200], fs);
+    band1 = bandpass(x, [200 550], fs);
+    band2 = bandpass(x, [550 900], fs);
+    band3 = bandpass(x, [900 1250], fs);
+    band4 = bandpass(x, [1250 1600], fs);
+    band5 = bandpass(x, [1600 2000], fs);
+    final_band = 0.1*band0+0.1*band1+2*band2+2*band3+band4+0.1*band5;
+    H(i) = final_band(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag = 20*log10(abs(H)); %in dB units
+gain_phase = (angle(H)/pi);
+
+figure();
+sgtitle('Bode Plot for Frequency Response');
+subplot(2,1,1);
+semilogx(f_range, gain_mag);
+xlim([0 1000]);
+title('Magnitude of Gain');
+xlabel('Frequency'); ylabel('dB');
+subplot(2,1,2);
+semilogx(f_range, gain_phase);
+title('Phase of Gain');
+xlabel('Frequency'); ylabel('Radians');
+xlim([0 10000]);
 
 %% Multi-band equalizer using bandpass func
 
@@ -120,8 +157,9 @@ band4 = bandpass(x, [1250 1600], fs);
 band5 = bandpass(x, [1600 2000], fs);
 final_band = 0.1*band0+0.1*band1+2*band2+2*band3+band4+0.1*band5;
 sound(final_band,fs);
-figure();
-pspectrum(final_band,fs);
+
+%figure();
+%pspectrum(final_band,fs);
 
 %% frequency spectrum
 
