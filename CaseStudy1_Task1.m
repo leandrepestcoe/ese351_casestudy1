@@ -7,17 +7,6 @@
 fs = xvfs; 
 %sound(xv,fs)
 
-%% Compute and Plot fft
-
-f = [0:length(xv)/2]*fs/length(xv);
-XV = fft(x);
-P2 = abs(XV/length(xv));
-P1 = P2(1:length(xv)/2+1);
-P1(2:end-1) = 2*P1(2:end-1);
-figure, plot(f,P1);
-xlabel('f, Hz')
-ylabel('|X(f)|')
-
 %% Define Bandpass Filter with 6 Freq Bands
 
 delta_t = 0.1;
@@ -28,9 +17,49 @@ final_filter = final_bandfilter(x,t_new);
 
 sound(final_filter,fs);
 
-%freq_response = freqs(final_filter,x,round(2*pi*60));
-%plot(freq_response);
-%freqz(final_filter);
+%% Define Filter using filterDesigner
+
+%load the filters from the .mat files into the workspace
+filter_obj0 = load('reject_60Hz.mat');
+filter_60_hz = filter_obj0.reject_60Hz; %reject 60 Hz
+
+filter_obj1 = load('bandpass1.mat');
+bandpass1 = filter_obj1.bandpass1; %200-550Hz
+
+filter_obj2 = load('bandpass2.mat');
+bandpass2 = filter_obj2.bandpass2; %550-900 Hz
+
+filter_obj3 = load('bandpass3.mat');
+bandpass3 = filter_obj3.bandpass3; %900-1250 Hz
+
+filter_obj4 = load('bandpass4.mat');
+bandpass4 = filter_obj4.bandpass4; %1250-1600 Hz
+
+%filter audio
+x_out0 = filter(filter_60_hz,x); %doesn't need a gain b/c it just gets rid of 60Hz
+x_out1 = filter(bandpass1,x);
+x_out2 = filter(bandpass2,x);
+x_out3 = filter(bandpass3,x);
+x_out4 = filter(bandpass4,x);
+
+gain1 = .1;
+gain2 = 1;
+gain3 = 1;
+gain4 = 5;
+
+x_out = x_out0+(x_out1*gain1)+(x_out2*gain2)+(x_out3*gain3)+(x_out4*gain4);
+sound(x_out,fs);
+
+%% Compute/Plot fft
+
+f = [0:length(xv)/2]*fs/length(xv);
+XV = fft(x);
+P2 = abs(XV/length(xv));
+P1 = P2(1:length(xv)/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+figure, plot(f,P1);
+xlabel('f, Hz')
+ylabel('|X(f)|')
 
 %% Compute/Plot Freq Response
 
@@ -45,7 +74,9 @@ x = exp(j*2*pi*100*t);
 for i = 1:length(f_range)
     f = f_range(i);
     x = exp(j*2*pi*f*t);
-    y = final_bandfilter(x,t);
+    %y = filter(filter_60_hz,x);
+    y = filter(bandpass4,x);
+    %y = final_bandfilter(x,t);
     H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
 end
 
@@ -81,101 +112,3 @@ figure();
 plot(t, filter_im); %plot impulse response
 title('Impulse Response of Final Filter');
 xlabel('Time(s)');
-
-%% Multi-band equalizer using bandpass func
-
-band0 = bandpass(x, [50 200], fs);
-band1 = bandpass(x, [200 550], fs);
-band2 = bandpass(x, [550 900], fs);
-band3 = bandpass(x, [900 1250], fs);
-band4 = bandpass(x, [1250 1600], fs);
-band5 = bandpass(x, [1600 2000], fs);
-final_band = 0.1*band0+0.1*band1+2*band2+2*band3+band4+0.1*band5;
-sound(final_band,fs);
-
-%figure();
-%pspectrum(final_band,fs);
-
-%% frequency spectrum
-
-y_out = fft(final_band);
-L = length(final_band);
-
-P2_out = abs(y_out/L);
-P1_out = P2_out(1:L/2+1);
-P1_out(2:end-1) = 2*P1_out(2:end-1);
-
-f = fs*(0:(L/2))/L;
-
-figure();
-plot(f,P1_out) 
-title('Single-Sided Amplitude Spectrum of x_out(t)')
-xlabel('f (Hz)')
-ylabel('|y_out(f)|')
-
-%% experimenting with filter designer
-
-% load the filter from the .mat file into the workspace
-%good_filter = load('60 Hz Bandstop Filter.mat');
-
-% apply the filter to the audio signal
-%x_out = filter(good_filter.mat,x); % SOUNDS GREAT
-x_out1 = filter(bandstop60,x);
-x_out2 = filter(bandstop1900,x_out1);
-x_out3 = filter(bandstop_low,x); % cuts out the low humming 
-x_out4= filter (bandstop200_300,x);
-finalfilter = 0.5*x_out3;
-%x_out=x_out1+x_out2;
-sound(finalfilter,xvfs);
-
-% plot filtered signal
-% figure();
-% plot(t,x_out);
-% %xlim([0 0.1]);
-% title('filtered audio signal');
-% xlabel('t');
-% ylabel('x(t)');
-
-%% 
-% bode plot for magnitude vs. frequency
-freq_range = logspace(1,log10(20000),10);
-gains = zeros(size(freq_range));
-T = 0.002;
-dt = 20*T;
-fs = 44100;
-t = 0:(1/fs):dt;
-
-for k = 1:length(freq_range);
-    freq = freq_range(k);
-    comp_exp = exp(j*freq*2*pi*t);
-    band0 = bandpass(comp_exp, [50 200], fs);
-    band1 = bandpass(comp_exp, [200 550], fs);
-    band2 = bandpass(comp_exp, [550 900], fs);
-    band3 = bandpass(comp_exp, [900 1250], fs);
-    band4 = bandpass(comp_exp, [1250 1600], fs);
-    band5 = bandpass(comp_exp, [1600 2000], fs);
-    final_band = 0.1*band0+0.1*band1+band2+band3+band4+0.01*band5;
-    filter_gain = final_band(end)/comp_exp(end);
-    gains(k) = filter_gain;
-end
-% for k = 1:length(freq_range);
-%     R_low0 = 1000;
-%     C_low0 = 1.59e-4; %1 Hz
-%     R_high0 = 1000;
-%     C_high0 = 2.65e-6; % 60 Hz
-%     y_high0 = lsim([1 0],[1 1/(R_high0*C_high0)], x, t_new);
-%     y_low0 = lsim(1/(R_low0*C_low0),[1 1/(R_low0*C_low0)],x,t_new);
-%     y_band0 = y_low0+y_high0;
-%      final_band = y_band0;
-%      filter_gain = final_band(end)/comp_exp(end);
-%      gains(k) = filter_gain;
-% end 
-
-dB = 20*log10(abs(gains));
-figure()
-subplot(2,1,1);
-semilogx(freq_range,dB);
-title('Magnitude of H(w) for final filter');
-xlabel('Frequency (Hz)');
-ylabel('Magnitude');
-grid on;
