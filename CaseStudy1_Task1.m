@@ -5,13 +5,13 @@
 
 [xv,xvfs] = audioread('violindirty.wav');
 fs = xvfs; 
+x = xv; %set input to audio signal
 %sound(xv,fs)
 
 %% Define Bandpass Filter with 6 Freq Bands
 
 delta_t = 0.1;
 t_new = (0:delta_t:(length(xv)-1)*delta_t)'; %define time vector
-x = xv; %set input to audio signal
 
 final_filter = final_bandfilter(x,t_new);
 
@@ -94,6 +94,141 @@ subplot(2,1,2);
 semilogx(f_range, gain_phase);
 title('Phase of Gain');
 xlabel('Frequency'); ylabel('Radians');
+xlim([0 10000]);
+
+%% Freq response of individual bands
+
+T = 0.002;
+fs = 44100;
+delta_t = 1/fs;
+f_range = logspace(1,log10(20000),600);
+t = (0:delta_t:10*T);
+H = zeros(size(f_range));
+x = exp(j*2*pi*100*t);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = band0_func(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag0 = 20*log10(abs(H)); %in dB units
+gain_phase0 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = band1_func(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag1 = 20*log10(abs(H)); %in dB units
+gain_phase1 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = band2_func(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag2 = 20*log10(abs(H)); %in dB units
+gain_phase2 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = band3_func(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag3 = 20*log10(abs(H)); %in dB units
+gain_phase3 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = band4_func(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag4 = 20*log10(abs(H)); %in dB units
+gain_phase4 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = band5_func(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag5 = 20*log10(abs(H)); %in dB units
+gain_phase5 = (angle(H)/pi);
+
+figure();
+sgtitle('Magnitude of Frequency Response for Individual Bands (RC filters)');
+subplot(2,3,1);
+semilogx(f_range, gain_mag0);
+xlim([0 10000]);
+title('Magnitude of Band0');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,2);
+semilogx(f_range, gain_mag1);
+xlim([0 10000]);
+title('Magnitude of Band1');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,3);
+semilogx(f_range, gain_mag2);
+xlim([0 10000]);
+title('Magnitude of Band2');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,4);
+semilogx(f_range, gain_mag3);
+xlim([0 10000]);
+title('Magnitude of Band3');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,5);
+semilogx(f_range, gain_mag4);
+xlim([0 10000]);
+title('Magnitude of Band4');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+%phase
+figure();
+sgtitle('Phase of Frequency Response for Individual Bands (RC filters)');
+subplot(2,3,1);
+semilogx(f_range, gain_phase0);
+title('Phase of Band0');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,2);
+semilogx(f_range, gain_phase1);
+title('Phase of Band1');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,3);
+semilogx(f_range, gain_phase2);
+title('Phase of Band2');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,4);
+semilogx(f_range, gain_phase3);
+title('Phase of Band3');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,5);
+semilogx(f_range, gain_phase4);
+title('Phase of Band4');
+xlabel('Frequency (Hz)'); ylabel('Radians');
 xlim([0 10000]);
 
 %% Compute/Plot Impulse Response
