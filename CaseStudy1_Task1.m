@@ -4,14 +4,14 @@
 %% Load 'noisyviolin.mat' and Play Recording
 
 [xv,xvfs] = audioread('violindirty.wav');
-fs = xvfs; 
-%sound(xv,fs)
+fs = xvfs;
+x = xv; %set input to audio signal
+sound(x,fs)
 
 %% Define Bandpass Filter with 6 Freq Bands
 
 delta_t = 0.1;
 t_new = (0:delta_t:(length(xv)-1)*delta_t)'; %define time vector
-x = xv; %set input to audio signal
 
 final_filter = final_bandfilter(x,t_new);
 
