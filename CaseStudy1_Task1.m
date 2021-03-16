@@ -3,9 +3,9 @@
 
 %% Load 'noisyviolin.mat' and Play Recording
 
-[xv,xvfs] = audioread('violindirty.wav');
+[xv,xvfs] = audioread('MATLAB .wav');
 fs = xvfs; 
-%sound(xv,fs)
+sound(xv,fs)
 
 %% Define Bandpass Filter with 6 Freq Bands
 
@@ -18,7 +18,7 @@ final_filter = final_bandfilter(x,t_new);
 sound(final_filter,fs);
 
 %% Define Filter using filterDesigner
-
+x=xv;
 %load the filters from the .mat files into the workspace
 filter_obj0 = load('reject_60Hz.mat');
 filter_60_hz = filter_obj0.reject_60Hz; %reject 60 Hz
@@ -42,10 +42,10 @@ x_out2 = filter(bandpass2,x);
 x_out3 = filter(bandpass3,x);
 x_out4 = filter(bandpass4,x);
 
-gain1 = .1;
+gain1 = 0.01;
 gain2 = 1;
 gain3 = 1;
-gain4 = 5;
+gain4 = 4;
 
 x_out = x_out0+(x_out1*gain1)+(x_out2*gain2)+(x_out3*gain3)+(x_out4*gain4);
 sound(x_out,fs);
@@ -53,13 +53,16 @@ sound(x_out,fs);
 %% Compute/Plot fft
 
 f = [0:length(xv)/2]*fs/length(xv);
-XV = fft(x);
+XV = fft(x_out);
 P2 = abs(XV/length(xv));
 P1 = P2(1:length(xv)/2+1);
 P1(2:end-1) = 2*P1(2:end-1);
 figure, plot(f,P1);
+xlim([0 8000]);
+title('FFT of Filtered ViolinDirty Audio (Filter Designer)');
 xlabel('f, Hz')
 ylabel('|X(f)|')
+
 
 %% Compute/Plot Freq Response
 
@@ -74,8 +77,70 @@ x = exp(j*2*pi*100*t);
 for i = 1:length(f_range)
     f = f_range(i);
     x = exp(j*2*pi*f*t);
+    y = filter(filter_60_hz,x);
+    %y = filter(bandpass4,x);
+    %y = final_bandfilter(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag0 = 20*log10(abs(H)); %in dB units
+gain_phase0 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = filter(bandpass1,x);
+    %y = filter(bandpass4,x);
+    %y = final_bandfilter(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag1 = 20*log10(abs(H)); %in dB units
+gain_phase1 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = filter(bandpass2,x);
+    %y = filter(bandpass4,x);
+    %y = final_bandfilter(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag2 = 20*log10(abs(H)); %in dB units
+gain_phase2 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = filter(bandpass3,x);
+    %y = filter(bandpass4,x);
+    %y = final_bandfilter(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag3 = 20*log10(abs(H)); %in dB units
+gain_phase3 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
     %y = filter(filter_60_hz,x);
     y = filter(bandpass4,x);
+    %y = final_bandfilter(x,t);
+    H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
+end
+
+gain_mag4 = 20*log10(abs(H)); %in dB units
+gain_phase4 = (angle(H)/pi);
+
+for i = 1:length(f_range)
+    f = f_range(i);
+    x = exp(j*2*pi*f*t);
+    y = filter(filter_60_hz,x)+filter(bandpass1,x)+filter(bandpass2,x)*1+filter(bandpass3,x)*1+filter(bandpass4,x);
+
+    %y = filter(x_out,x);
+    %y = filter(bandpass4,x);
     %y = final_bandfilter(x,t);
     H(i) = y(end)/x(end); %use end because we want to analyze the steady state part 
 end
@@ -83,19 +148,85 @@ end
 gain_mag = 20*log10(abs(H)); %in dB units
 gain_phase = (angle(H)/pi);
 
+
+
 figure();
-sgtitle('Bode Plot for Frequency Response of All Bands');
-subplot(2,1,1);
-semilogx(f_range, gain_mag);
+sgtitle('Magnitude of Frequency Response for Individual Bands');
+subplot(2,3,1);
+semilogx(f_range, gain_mag0);
 xlim([0 10000]);
-title('Magnitude of Gain');
-xlabel('Frequency'); ylabel('dB');
-subplot(2,1,2);
-semilogx(f_range, gain_phase);
-title('Phase of Gain');
-xlabel('Frequency'); ylabel('Radians');
+title('Magnitude of Bandstop for 60Hz');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,2);
+semilogx(f_range, gain_mag1);
+xlim([0 10000]);
+title('Magnitude of Bandpass 1');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,3);
+semilogx(f_range, gain_mag2);
+xlim([0 10000]);
+title('Magnitude of Bandpass 2');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,4);
+semilogx(f_range, gain_mag3);
+xlim([0 10000]);
+title('Magnitude of Bandpass 3');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+subplot(2,3,5);
+semilogx(f_range, gain_mag4);
+xlim([0 10000]);
+title('Magnitude of Bandpass 4');
+xlabel('Frequency (Hz)'); ylabel('dB');
+
+figure 
+sgtitle('Phase of Frequency Response for Individual Bands');
+subplot(2,3,1);
+semilogx(f_range, gain_phase0);
+title('Phase of Bandstop for 60 Hz');
+xlabel('Frequency (Hz)'); ylabel('Radians');
 xlim([0 10000]);
 
+subplot(2,3,2);
+semilogx(f_range, gain_phase1);
+title('Phase of Bandpass 1');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,3);
+semilogx(f_range, gain_phase2);
+title('Phase of Bandpass 2');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,4);
+semilogx(f_range, gain_phase3);
+title('Phase of Bandpass 3');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+subplot(2,3,5);
+semilogx(f_range, gain_phase4);
+title('Phase of Bandpass 4');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
+
+figure 
+sgtitle('Bode Plot of Frequency Response for Final Band (with no gain)');
+subplot(2,1,1)
+semilogx(f_range, gain_mag);
+title('Magnitude');
+xlabel('Frequency (Hz)'); ylabel('dB');
+xlim([0 10000]);
+
+subplot(2,1,2)
+semilogx(f_range, gain_phase);
+title('Phase');
+xlabel('Frequency (Hz)'); ylabel('Radians');
+xlim([0 10000]);
 %% Compute/Plot Impulse Response
 
 T = 0.002;

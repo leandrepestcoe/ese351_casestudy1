@@ -47,23 +47,23 @@ y_band4 = y_low4+y_high4;
 
 % bandpass filter 5
 R_high5 = 1000;
-C_high5 = 9.95e-8; %6000 Hz
+C_high5 = 9.95e-8; %1600 Hz
 R_low5 = 1000;
-C_low5 = 2.65e-8; %1600 Hz
+C_low5 = 2.65e-8; %6000 Hz
 y_low5 = lsim(1/(R_low5*C_low5),[1 1/(R_low5*C_low5)],x,t_new);
 y_high5 = lsim([1 0],[1 1/(R_high5*C_high5)], x, t_new);
 y_band5 = y_low5+y_high5;
 
 
 % gains for freq bands
-gain0 = 0.1; %1-200 Hz
-gain1 = 1; %200-550 Hz
-gain2 = 1; %550-900 Hz
-gain3 = 1; %900-1250 Hz
+gain0 = 0.01; %1-200 Hz
+gain1 = 0.01; %200-550 Hz
+gain2 = 0.01; %550-900 Hz
+gain3 = 0.5; %900-1250 Hz
 gain4 = 1; %1250-1600 Hz
-gain5 = 0.1; %1600-6000 Hz
+gain5 = .3; %1600-6000 Hz
 
 filter = (gain0*y_band0)+(gain1*y_band1)+(gain2*y_band2)+(gain3*y_band3)+(gain4*y_band4)+(gain5*y_band5); %six bandpass filters in parallel
-%filter = y_band5;
+%filter = y_band1;
 end
 
