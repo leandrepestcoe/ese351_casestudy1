@@ -241,9 +241,24 @@ impulse = zeros(1,length(t));
 impulse(1)=1; %define impulse func
 
 %compute impulse response
-filter_im = final_bandfilter(impulse,t);  
+x_out0 = filter(filter_60_hz,impulse);
+x_out1 = filter(bandpass1,impulse);
+x_out2 = filter(bandpass2,impulse);
+x_out3 = filter(bandpass3,impulse);
+x_out4 = filter(bandpass4,impulse);
+
+gain1 = .1;
+gain2 = 1;
+gain3 = 1;
+gain4 = 5;
+
+%x_out = x_out0+(x_out1*gain1)+(x_out2*gain2)+(x_out3*gain3)+(x_out4*gain4);
+%x_out = x_out0+x_out1+x_out2+x_out3+x_out4;
+
+%filter_im = final_bandfilter(impulse,t); 
+filter_im = band0_func(impulse,t)+band1_func(impulse,t)+band2_func(impulse,t)+band3_func(impulse,t)+band4_func(impulse,t)+band5_func(impulse,t);
 
 figure();
 plot(t, filter_im); %plot impulse response
-title('Impulse Response of Final Filter');
-xlabel('Time(s)');
+title('Impulse Response of Final Filter with Gains Set to 1 (RC Circuits)');
+xlabel('Time(s)'); ylabel('Amplitude');
